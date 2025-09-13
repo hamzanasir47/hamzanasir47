@@ -6,4 +6,6 @@ This folder is dedicated to my YouTube tutorials, playlists, and any resources r
 - Curated playlists
 - Video project files
 
-(Coming soon!) 
+**My Youtube Channel Videos Links:**
+
+Welcome to The DevOps Fix – Real-World DevOps Made Simple: https://www.youtube.com/watch?v=dkIdBY4eBeA

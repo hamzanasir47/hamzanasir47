@@ -18,4 +18,4 @@ This is my personal space for sharing and organizing everything I learn and crea
 ---
 
 Connect with me:
-- [LinkedIn](https://www.linkedin.com/in/hamza-nasir475/) | [YouTube](Coming soon)
+- [LinkedIn](https://www.linkedin.com/in/hamza-nasir475/) | [YouTube](https://www.youtube.com/@HamzaNasir-tech)
