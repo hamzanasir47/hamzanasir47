@@ -7,4 +7,4 @@ This folder is home to all my cloud computing and DevOps learning material, incl
 - Automation scripts
 - Docker, Kubernetes, and more
 
-Automate, scale, and deploy with confidence!
+Automate, scale, and deploy with confidence! 
