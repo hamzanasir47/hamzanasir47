@@ -1,0 +1,100 @@
+#This script is used to deploy Argo CD to a Kubernetes cluster on docker desktop
+# It will install the required tools and then deploy Argo CD
+# It will also setup the access to Argo CD
+# It will also start the port forwarding to Argo CD
+# It will also login to Argo CD
+# It will also display the URL, username and password for Argo CD
+# It will also display the port forwarding is running in background. To stop it, run: Get-Job | Stop-Job
+# It will also display the Argo CD setup is complete
+# It will also display the URL, username and password for Argo CD
+# It will also display the port forwarding is running in background. To stop it, run: Get-Job | Stop-Job
+
+# Configuration
+$ArgoCDNamespace = "argocd"
+
+# Function to install tools with chocolatey
+function Install-Tool {
+    param($ToolName, $ChocoPackage, $TestCommand)
+    
+    if (& $TestCommand 2>$null) {
+        Write-Host "✓ $ToolName is already installed" -ForegroundColor Green
+        return $true
+    }
+    
+    Write-Host "Installing $ToolName..." -ForegroundColor Yellow
+    choco install $ChocoPackage -y
+    return (& $TestCommand 2>$null)
+}
+
+# Check if running as admin
+if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Host "Please run as Administrator for chocolatey installation" -ForegroundColor Red
+    exit 1
+}
+
+# Install chocolatey if not present
+if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+    Write-Host "Installing chocolatey..." -ForegroundColor Yellow
+    Set-ExecutionPolicy Bypass -Scope Process -Force
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+    iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+}
+
+# Install required tools
+Write-Host "`nChecking and installing required tools..." -ForegroundColor Cyan
+
+$tools = @(
+    @{Name="kubectl"; Choco="kubernetes-cli"; Test="kubectl version --client"},
+    @{Name="helm"; Choco="kubernetes-helm"; Test="helm version"},
+    @{Name="k9s"; Choco="k9s"; Test="k9s version"},
+    @{Name="argocd"; Choco="argocd-cli"; Test="argocd version"}
+)
+
+foreach ($tool in $tools) {
+    if (-not (Install-Tool -ToolName $tool.Name -ChocoPackage $tool.Choco -TestCommand $tool.Test)) {
+        Write-Host "Failed to install $($tool.Name)" -ForegroundColor Red
+        exit 1
+    }
+}
+
+# Check Docker is running
+Write-Host "`nChecking Docker Desktop..." -ForegroundColor Cyan
+if (-not (docker info 2>$null)) {
+    Write-Host "Docker Desktop is not running. Please start it first." -ForegroundColor Red
+    exit 1
+}
+
+# Enable Kubernetes if not enabled
+Write-Host "Checking Kubernetes cluster..." -ForegroundColor Cyan
+if (-not (kubectl cluster-info 2>$null)) {
+    Write-Host "Kubernetes not enabled in Docker Desktop. Please enable it from Docker Desktop settings." -ForegroundColor Red
+    exit 1
+}
+
+# Install Argo CD
+Write-Host "`nInstalling Argo CD..." -ForegroundColor Cyan
+kubectl create namespace $ArgoCDNamespace 2>$null
+kubectl apply -n $ArgoCDNamespace -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Wait for Argo CD to be ready
+Write-Host "Waiting for Argo CD to be ready..." -ForegroundColor Yellow
+Start-Sleep 10
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n $ArgoCDNamespace --timeout=180s
+
+# Get Argo CD password and setup access
+Write-Host "`nSetting up Argo CD access..." -ForegroundColor Cyan
+$password = kubectl -n $ArgoCDNamespace get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+Write-Host "`nStarting port forwarding..." -ForegroundColor Yellow
+Start-Job -ScriptBlock { kubectl port-forward svc/argocd-server -n $args[0] 8080:443 } -ArgumentList $ArgoCDNamespace
+
+Start-Sleep 5
+
+# Login to Argo CD
+argocd login localhost:8080 --username admin --password $password --insecure
+
+Write-Host "`n=== ARGO CD SETUP COMPLETE ===" -ForegroundColor Green
+Write-Host "URL: https://localhost:8080" -ForegroundColor Yellow
+Write-Host "Username: admin" -ForegroundColor Yellow
+Write-Host "Password: $password" -ForegroundColor Yellow
+Write-Host "`nPort forwarding is running in background. To stop it, run: Get-Job | Stop-Job" -ForegroundColor Cyan
