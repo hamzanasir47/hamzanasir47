@@ -1,0 +1,49 @@
+{
+    "LOG": true,
+    "LOG_LEVEL": "debug",
+    "CLAUDE_PATH": "",
+    "HOST": "127.0.0.1",
+    "PORT": 3460,
+    "APIKEY": "",
+    "API_TIMEOUT_MS": "600000",
+    "PROXY_URL": "",
+    "transformers": [],
+    "Providers": [
+      {
+        "name": "openrouter",
+        "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
+        "api_key": "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",
+        "models": [
+          "openai/gpt-oss-20b:free",
+          "z-ai/glm-4.5-air:free",
+          "qwen/qwen3-coder:free",
+          "moonshotai/kimi-k2:free"
+        ],
+        "transformer": {
+          "use": [
+            "openrouter"
+          ]
+        }
+      }
+    ],
+    "StatusLine": {
+      "enabled": false,
+      "currentStyle": "default",
+      "default": {
+        "modules": []
+      },
+      "powerline": {
+        "modules": []
+      }
+    },
+    "Router": {
+      "default": "openrouter,z-ai/glm-4.5-air:free",
+      "background": "openrouter,z-ai/glm-4.5-air:free",
+      "think": "",
+      "longContext": "openrouter,qwen/qwen3-coder:free",
+      "longContextThreshold": 60000,
+      "webSearch": "",
+      "image": ""
+    },
+    "CUSTOM_ROUTER_PATH": ""
+  }
