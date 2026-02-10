@@ -12,7 +12,7 @@
       {
         "name": "openrouter",
         "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
-        "api_key": "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",
+        "api_key": "",
         "models": [
           "openai/gpt-oss-20b:free",
           "z-ai/glm-4.5-air:free",
